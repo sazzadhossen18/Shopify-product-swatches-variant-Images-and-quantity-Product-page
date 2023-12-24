@@ -1,6 +1,6 @@
 <script src="https://cdn.jsdelivr.net/npm/url-parse@1.5.10/dist/url-parse.min.js"></script>
 <script>
-  
+  //Currency Formet
 window.theme = window.theme || {};
 
 var formatMoney = function(cents, format) {
@@ -47,17 +47,22 @@ var formatMoney = function(cents, format) {
   return formatString.replace(placeholderRegex, value);
 };
 
+
+
+  
   var product = {{ product | json }}
   
   document.querySelectorAll('input[type="radio"]').forEach( radio =>{
   radio.addEventListener("change", () => {
 
+     //Selected Option
     var selectedOptions = [];
     document.querySelectorAll('input[type="radio"]:checked').forEach( radio =>{
         selectedOptions.push(radio.value)
-      })
+    })
 
 
+     //Finding Matched Variant
     var matchedVariant = product.variants.find(variant => {
       var pass = true;
       for(var i=0; i<selectedOptions.length; i++){
@@ -69,53 +74,71 @@ var formatMoney = function(cents, format) {
       return pass
     })
 
+
+    //Change Product Variant Id
     document.querySelector('#product-id').value = matchedVariant.id
 
-
+     //Change url
     var url = new URLParse(window.location.href, true)
     url.query.variant =  matchedVariant.id
     window.history.replaceState(null, null, url.toString());
 
+    
+    //Different descrition for different variant
+    const allvariant = JSON.parse(document.querySelector('#variant-metafield-data').textContent)
+    const variantdetails = document.querySelector('.variant-details');
+    variantdetails.textContent = allvariant[matchedVariant.id];
+    
 
+    //Different sku for different variant
+     document.querySelector('.product-single__sku').textContent = matchedVariant.sku;
 
-      document.querySelector('.product-price').textContent = formatMoney(matchedVariant.price, "{{ shop.money_format }}") 
-      document.querySelector('.product__price--compare').textContent = formatMoney(matchedVariant.compare_at_price, "{{ shop.money_format }}") 
-
-
+    
+    //Different price for different variant
+    rprice = document.querySelector('.product-price').textContent = formatMoney(matchedVariant.price, "{{ shop.money_format }}") 
+    cprice = document.querySelector('.product__price--compare').textContent = formatMoney(matchedVariant.compare_at_price, "{{ shop.money_format }}") 
     matchedVariant.compare_at_price > matchedVariant.price ?
-     document.querySelector('.product__price--compares').classList.remove('hide') :
+    document.querySelector('.product__price--compares').classList.remove('hide') :
     document.querySelector('.product__price--compares').classList.add('hide')
 
 
+      //Different image for different variant
+    if(matchedVariant.featured_image){
+        document.querySelector('#product-image').setAttribute('src', matchedVariant.featured_image.src)
+        document.querySelector('.thubnail-image-slider .mail-image.slick-current').classList.remove('slick-current')
+        document.querySelectorAll('.thubnail-image-slider .mail-image')[matchedVariant.featured_image.position-1].classList.add('slick-current')
+    }
+
+
+    // Add To Cart
+    var addtocart = document.querySelector('.add-to-cart');
+    if(matchedVariant.available){
+        addtocart.textContent = "Add To Cart!"
+        addtocart.disabled = false
+    }else{
+        addtocart.textContent = "Out Of sTock"
+        addtocart.disabled = true
+    }
 
 
 
-if(matchedVariant.featured_image){
-    document.querySelector('#product-image').setAttribute('src', matchedVariant.featured_image.src)
-    document.querySelector('.thubnail-image-slider .mail-image.slick-current').classList.remove('slick-current')
-    document.querySelectorAll('.thubnail-image-slider .mail-image')[matchedVariant.featured_image.position-1].classList.add('slick-current')
-}
+
 
     
-  var addtocart = document.querySelector('.add-to-cart');
-  if(matchedVariant.available){
-    addtocart.textContent = "Add To Cart!"
-    addtocart.disabled = false
-  }else{
-     addtocart.textContent = "Out Of sTock"
-    addtocart.disabled = true
-    }
     
     
    });
     
   });
 
+
+
+
+  // Quantity plus and minus
   document.querySelector('.plus').addEventListener('click', ()=> {
     currentValue =  Number(document.querySelector('#quantity').value)
     document.querySelector('#quantity').value = currentValue + 1;
   })
-
 
    document.querySelector('.minus').addEventListener('click', ()=> {
     currentValue =  Number(document.querySelector('#quantity').value)
@@ -127,3 +150,4 @@ if(matchedVariant.featured_image){
 
   
  </script>
+
